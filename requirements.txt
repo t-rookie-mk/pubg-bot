@@ -1,0 +1,6 @@
+transitions
+pywin32
+pywin32-ctypes
+pyautogui
+opencv-python
+pydirectinput
