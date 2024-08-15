@@ -4,3 +4,5 @@ pywin32-ctypes
 pyautogui
 opencv-python
 pydirectinput
+matplotlib
+keyboard
