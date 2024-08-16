@@ -396,7 +396,7 @@ class PubgModel:
         pydirectinput.keyDown("ctrl")
         pydirectinput.keyDown("w")
 
-        time.sleep(6)
+        time.sleep(10)
 
         self.direction_finding()
 
@@ -409,7 +409,7 @@ class PubgModel:
             
             dis = self.get_cur_target_distance(relative_area=self.min_map_area)
             if dis:
-                if dis < 30 or dis - min_dis > 10:
+                if dis < 30:
                     break
                 else:
                     # 如果落地了
