@@ -8,9 +8,16 @@ from model.pubg_model import PubgModel
 from utils import win_util
 import pydirectinput
 
+game = PubgModel()
+
+def on_home_key():
+    print("Home key pressed. Exiting...")
+    game.end_state = True
+
 
 if __name__ == "__main__":
-    game = PubgModel()
+    # 监听Home键的按下
+    keyboard.add_hotkey('home', on_home_key)
 
     time.sleep(2)
 
@@ -19,6 +26,9 @@ if __name__ == "__main__":
 
     while True:
         try:
+            if game.end_state:
+                sys.exit()
+                
             if game.state == 'no_game':
                 game.start_game()
 
@@ -41,9 +51,7 @@ if __name__ == "__main__":
                 game.ground()
 
             if game.state == 'ground':
-                pydirectinput.press('x')
-                pydirectinput.click()
-                pydirectinput.press('c')
+                game.radom_action()
 
             if game.state == 'error':
                 game.define_now_state()
@@ -53,8 +61,5 @@ if __name__ == "__main__":
             print(f'当前状态: {game.state}')
 
             time.sleep(2)
-        except KeyboardInterrupt:
-            print("Program terminated by user.")
-            sys.exit()
-
-    
+        except Exception:
+            print('main error')

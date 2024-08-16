@@ -1,3 +1,4 @@
+import random
 import pyautogui
 from transitions import Machine
 from model.opencv_model import ImageFinder
@@ -30,11 +31,15 @@ class PubgModel:
         self.image_finder = ImageFinder(imgopcv=0.8, search_area_percentages=self.coord)
         self.pic_dict = get_images_map()
 
-        pydirectinput._pause = False
         self.cesuo_pos = [876, 456, 890, 460, 887, 472, 879, 500]
+
+        self.min_map_area = [1360,660,1570,870]
 
         self.check_relative_x = (self.coord[2] - self.coord[0]) / 2 + 1;
         self.check_relative_y = 27
+
+        self.end_state = False
+
         pass
 
     def define_now_state(self):
@@ -136,6 +141,8 @@ class PubgModel:
         return x is not None
     
     def direction_finding(self) -> bool:
+        if self.end_state:
+            return True
 
         result = self.image_finder.find_color_pos(self.check_relative_x, self.check_relative_y, range_radius=3)
         print(f'direction_finding-firstcheck寻找目标点{result}')
@@ -149,13 +156,15 @@ class PubgModel:
         points = self.image_finder.get_contour_points(relative_area=(549,19,993,33))
         print(f'direction_finding:{points}')
         if points is not None and len(points) == 1:
-            move_x = int(points[0][0] - ((self.coord[2] + self.coord[0]) / 2)) * 10
+            move_x = int(points[0][0] - ((self.coord[2] + self.coord[0]) / 2)) * 9
+                
             if move_x < 0:
                 step = -50
+            
             print(f'快速修正{move_x}')
 
             while abs(move_x) > abs(step):
-                pydirectinput.moveRel(step, 0, relative=True)
+                pydirectinput.moveRel(step, 0, relative=True,  _pause=False)
                 move_x -= step
             
 
@@ -163,7 +172,6 @@ class PubgModel:
         start_time = time.time()
         while True:
             if time.time() - start_time > 15:
-                self.plane_find_pos = False
                 print('寻找目标点失败')
                 return False
             
@@ -177,6 +185,9 @@ class PubgModel:
 
     
     def way_finding(self, relative_x, relative_y) -> bool:
+
+        if self.end_state:
+            return True
         
         # 指定目标点
         self.mark_map_pos_second(relative_x, relative_y)
@@ -195,12 +206,21 @@ class PubgModel:
             result = self.direction_finding()
             if not result:
                 return False
+            
+            # 检测小地图距离 没有直接开始跑
+            dis = self.get_cur_target_distance(relative_area=self.min_map_area)
+            if dis:
+                pydirectinput.keyDown('w')
+                pydirectinput.keyDown('shift')
+                time.sleep(2)
+                pydirectinput.keyUp('w')
+                pydirectinput.keyUp('shift')
+            else:
+                pydirectinput.keyDown('w')
+                time.sleep(0.5)
+                pydirectinput.keyUp('w')
 
-            pydirectinput.keyDown('shift')
-            pydirectinput.keyDown('w')
             time.sleep(0.5)
-            pydirectinput.keyUp('w')
-            pydirectinput.keyUp('shift')
 
 
             if not self.image_finder.find_color_pos(self.check_relative_x, self.check_relative_y, range_radius=3):
@@ -209,7 +229,7 @@ class PubgModel:
                 if self.check_arrive_pos_way_finding():
                     print('结束寻路')
                     break
-
+        return True
 
     def pick(self):
         # 开始拾取
@@ -261,7 +281,7 @@ class PubgModel:
                 
         
         pydirectinput.keyDown('w')
-        time.sleep(1)
+        time.sleep(3)
         pydirectinput.keyUp('w')
 
         # 开始拾取
@@ -327,15 +347,20 @@ class PubgModel:
     def plane_find_pos(self):
         start_time = time.time()
         # 首先计算可以飞的距离
-        pydirectinput.press('m')
+        print('plane_find_pos 打开地图')
+        
         # 打开地图
         while True:
+            if time.time() - start_time > 10:
+                print('打开地图失败')
+                return
             x, y = self.image_finder.find_image_in_screen(self.pic_dict['map_ok'])
             if x is None:
                 pydirectinput.press('m')
             else:
                 break
-
+        
+        start_time = time.time()
         min_dis = 100000
         while True:
             if time.time() - start_time > 30:
@@ -343,50 +368,77 @@ class PubgModel:
                 return
             dis = self.get_cur_target_distance(relative_area=(350,10,1250,890))
             if dis :
-                if dis <= 200 or dis - min_dis > 10:
+                if dis <= 180 or dis - min_dis > 10:
                     print('可以起飞了')
                     break;
                 min_dis = min(min_dis, dis)
             
         
         # 关闭地图
+        start_time = time.time()
+        print('plane_find_pos 关闭地图')
         while True:
+            if time.time() - start_time > 10:
+                print('关闭地图失败')
+                return
             x, y = self.image_finder.find_image_in_screen(self.pic_dict['map_ok'])
             if x is not None:
                 pydirectinput.press('m')
+                
             else:
                 break
-
+        
         self.direction_finding()
 
         # 跳伞
         pydirectinput.press("f")
-        # 向目标点飞行
+
+         # 向目标点飞行
         pydirectinput.keyDown("ctrl")
         pydirectinput.keyDown("w")
 
-        
+        time.sleep(6)
+
+        self.direction_finding()
+
+        start_time = time.time()
+        min_dis = 100000
+        while True:
+            if time.time() - start_time > 120:
+                print('飞行到目标超时')
+                return
+            
+            dis = self.get_cur_target_distance(relative_area=self.min_map_area)
+            if dis:
+                if dis < 30 or dis - min_dis > 10:
+                    break
+                else:
+                    # 如果落地了
+                    x, y = self.image_finder.find_image_in_screen(self.pic_dict['ground'])
+                    if x is not None:
+                        pydirectinput.keyUp("ctrl")
+                        pydirectinput.keyDown("shift")
+
+                min_dis = min(min_dis, dis)
+
+        pydirectinput.press('f')
         start_time = time.time()
         while True:
             if time.time() - start_time > 120:
                 print('降落超时')
                 return
-            
-            # 如果落地了
+            # 如果没落地
             x, y = self.image_finder.find_image_in_screen(self.pic_dict['ground'])
-            if x is not None:
-                if not self.check_arrive_pos():
-                    pydirectinput.keyUp("ctrl")
-                    pydirectinput.keyDown("shift")
-                    break
-                else:
-                    break
-            else:
-                if self.check_arrive_pos():
-                    pydirectinput.keyDown("shift")
-                    pydirectinput.keyDown("a")
+            if x is None:
+                pydirectinput.keyUp('w')
+                pydirectinput.keyUp("ctrl")
 
-            
+                pydirectinput.keyDown("shift")
+                pydirectinput.keyDown('a')
+
+                time.sleep(1)
+            else:
+                break
         
         pydirectinput.press("shift")
         pydirectinput.press("w")
@@ -402,9 +454,9 @@ class PubgModel:
             return True
         return False
 
-    def check_arrive_pos(self, threshold = 30) -> bool:
+    def check_arrive_pos(self, threshold = 20) -> bool:
         # 小地图截图
-        dis = self.get_cur_target_distance(relative_area=[1354,659,1576,880])
+        dis = self.get_cur_target_distance(relative_area=self.min_map_area)
         if dis and dis < threshold:
             print("已到达目标点")
             return True
@@ -550,4 +602,46 @@ class PubgModel:
         result.extend([x - self.coord[0], y-self.coord[1]])
 
         print(f'points:{result}')
+
+    def random_movement(self):
+        # 随机选择一个方向键
+        direction = random.choice(['w', 'a', 's', 'd'])
+        # 随机按下和释放时间
+        press_time = random.uniform(0.1, 1.5)
         
+        pydirectinput.keyDown(direction)
+        time.sleep(press_time)
+        pydirectinput.keyUp(direction)
+
+    def random_jump(self):
+        # 随机时间内跳跃
+        if random.random() > 0.8:  # 20%概率跳跃
+            pydirectinput.keyDown('space')
+            time.sleep(0.2)
+            pydirectinput.keyUp('space')
+
+    def random_shoot(self):
+        # 随机瞄准和射击
+        if random.random() > 0.9:  # 10%概率射击
+            pydirectinput.rightClick()
+            time.sleep(random.uniform(0.1, 0.5))
+            pydirectinput.rightClick()
+
+    def random_treat(self):
+        time.sleep(random.uniform(0.1, 0.5))
+        list = ['0', '8', '9', '7']
+        pydirectinput.press(random.choice(list))
+
+
+    def random_look_around(self):
+        # 随机移动鼠标以模拟查看四周
+        x_move = random.randint(-100, 100)
+        y_move = random.randint(-100, 100)
+        pydirectinput.moveRel(x_move, y_move, relative=True)
+
+    def radom_action(self):
+        actions = [self.random_movement, self.random_jump, self.random_shoot, self.random_look_around]
+        action = random.choice(actions)
+        action()
+        time.sleep(random.uniform(0.5, 1.0))
+        self.random_treat()

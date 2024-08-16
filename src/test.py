@@ -41,6 +41,8 @@ model = PubgModel()
 
 # model.mark_pos_action()
 
+x, y = image_finder.find_image_in_screen(model.pic_dict['ground'])
+
 model.cesuo_pos = [876, 456, 890, 460, 887, 472, 879, 500]
 # model.check_arrive_pos_way_finding()
 model.marking()
