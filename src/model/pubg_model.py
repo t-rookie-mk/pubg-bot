@@ -40,6 +40,8 @@ class PubgModel:
 
         self.end_state = False
 
+        self.error_image_list = [self.pic_dict['error'], self.pic_dict['error1'], self.pic_dict['error2'], self.pic_dict['error3']]
+
         pass
 
     def define_now_state(self):
@@ -133,11 +135,11 @@ class PubgModel:
         return x is not None
     
     def check_error(self) -> bool:
-        x, y = self.image_finder.find_any_image_in_screen([self.pic_dict['error'], 
-                                                          self.pic_dict['error1'], 
-                                                          self.pic_dict['error2'],
-                                                          self.pic_dict['refresh'],],
-                                                          threshold=0.9)
+        x, y = self.image_finder.find_any_image_in_screen(self.error_image_list, threshold=0.9)
+        if x is not None:
+            return True
+        
+        x, y = self.image_finder.find_image_in_screen(self.pic_dict['refresh'])
         return x is not None
     
     def direction_finding(self) -> bool:
@@ -331,10 +333,7 @@ class PubgModel:
             pydirectinput.click()
             time.sleep(1)
 
-        x, y = self.image_finder.find_any_image_in_screen([self.pic_dict['error'], 
-                                                          self.pic_dict['error1'], 
-                                                          self.pic_dict['error2']],
-                                                          threshold=0.9)
+        x, y = self.image_finder.find_any_image_in_screen(self.error_image_list, threshold=0.9)
         
         if x is not None:
             pydirectinput.moveTo(int(x), int(y), duration=0.5)

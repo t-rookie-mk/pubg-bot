@@ -42,6 +42,7 @@ def get_images_map():
         error = os.path.join(root_path, 'resources\\error\\error.bmp')
         error1 = os.path.join(root_path, 'resources\\error\\error1.bmp')
         error2 = os.path.join(root_path, 'resources\\error\\error2.bmp')
+        error3 = os.path.join(root_path, 'resources\\error\\error3.bmp')
         refresh = os.path.join(root_path, 'resources\\error\\refresh.bmp') 
         
         return1 = os.path.join(root_path, 'resources\\return\\return1.bmp')
@@ -60,6 +61,7 @@ def get_images_map():
              'error': error,
              'error1': error1,
              'error2': error2,
+             'error3': error3,
              'refresh': refresh,
 
              'return1': return1,
