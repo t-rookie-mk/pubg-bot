@@ -24,7 +24,7 @@ if coord:
 
 model = PubgModel()
 
-model.end()
+# model.end()
 
 # pydirectinput.moveRel(100, 0, relative=True, _pause=False)
 
@@ -47,5 +47,5 @@ model.end()
 
 # model.cesuo_pos = [876, 456, 890, 460, 887, 472, 879, 500]
 # # model.check_arrive_pos_way_finding()
-# model.marking()
-# model.goto_bp()
+model.marking()
+model.goto_bp()

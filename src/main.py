@@ -1,4 +1,5 @@
 import sys
+import threading
 import time
 
 import keyboard
@@ -8,16 +9,21 @@ from model.pubg_model import PubgModel
 from utils import win_util
 import pydirectinput
 
-game = PubgModel()
 
-def on_home_key():
+
+def on_home_key(game: PubgModel):
+    keyboard.wait('home')
     print("Home key pressed. Exiting...")
-    game.end_state = True
+    game.running = False
 
 
 if __name__ == "__main__":
+    game = PubgModel()
+
     # 监听Home键的按下
-    keyboard.add_hotkey('home', on_home_key)
+    key_listener_thread = threading.Thread(target=on_home_key, args=(game,))
+    key_listener_thread.setDaemon(True)
+    key_listener_thread.start()
 
     time.sleep(2)
 
@@ -26,7 +32,7 @@ if __name__ == "__main__":
 
     while True:
         try:
-            if game.end_state:
+            if not game.running:
                 sys.exit()
                 
             if game.state == 'no_game':

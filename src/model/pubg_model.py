@@ -38,7 +38,7 @@ class PubgModel:
         self.check_relative_x = (self.coord[2] - self.coord[0]) / 2 + 1;
         self.check_relative_y = 27
 
-        self.end_state = False
+        self.running = True
 
         self.error_image_list = [self.pic_dict['error'], self.pic_dict['error1'], self.pic_dict['error2'], self.pic_dict['error3']]
 
@@ -143,9 +143,6 @@ class PubgModel:
         return x is not None
     
     def direction_finding(self) -> bool:
-        if self.end_state:
-            return True
-
         result = self.image_finder.find_color_pos(self.check_relative_x, self.check_relative_y, range_radius=3)
         print(f'direction_finding-firstcheck寻找目标点{result}')
         if result:
@@ -172,7 +169,7 @@ class PubgModel:
 
         # 寻找方向
         start_time = time.time()
-        while True:
+        while self.running:
             if time.time() - start_time > 15:
                 print('寻找目标点失败')
                 return False
@@ -188,7 +185,7 @@ class PubgModel:
     
     def way_finding(self, relative_x, relative_y) -> bool:
 
-        if self.end_state:
+        if not self.running:
             return True
         
         # 指定目标点
@@ -196,7 +193,7 @@ class PubgModel:
 
         start_time = time.time()
         # 检测到点
-        while True:
+        while self.running:
             if time.time() - start_time > 60:
                 print('way_finding失败')
                 return False
@@ -248,6 +245,8 @@ class PubgModel:
         pydirectinput.press('tab')
     
     def goto_bp(self):
+        if not self.running:
+            return
 
         self.map_scroll()
 
@@ -265,7 +264,7 @@ class PubgModel:
         self.mark_map_pos_second(self.cesuo_pos[2], self.cesuo_pos[3])
        
         start_time = time.time()
-        while True:
+        while self.running:
             if time.time() - start_time > 10:
                 print('way_finding失败')
                 return False
@@ -280,42 +279,43 @@ class PubgModel:
             if x is not None:
                 pydirectinput.press('f')
                 break
-                
         
-        pydirectinput.keyDown('w')
-        time.sleep(3)
-        pydirectinput.keyUp('w')
+        # 进厕所
+        if self.running:
+            pydirectinput.keyDown('w')
+            time.sleep(3)
+            pydirectinput.keyUp('w')
 
-        # 开始拾取
-        self.pick()
+            # 开始拾取
+            self.pick()
 
-        pydirectinput.keyDown('a')
-        time.sleep(1)
-        pydirectinput.keyUp('a')
+            pydirectinput.keyDown('a')
+            time.sleep(1)
+            pydirectinput.keyUp('a')
 
-        # 开始拾取
-        self.pick()
+            # 开始拾取
+            self.pick()
 
-        pydirectinput.keyDown('s')
-        time.sleep(1)
-        pydirectinput.keyUp('s')
-        
-        # 转向
-        move_x= 4000
-        step = 50
-        while abs(move_x) > abs(step):
-            pydirectinput.moveRel(step, 0, relative=True, _pause=False)
-            move_x -= step
+            pydirectinput.keyDown('s')
+            time.sleep(1)
+            pydirectinput.keyUp('s')
+            
+            # 转向
+            move_x= 4000
+            step = 50
+            while abs(move_x) > abs(step):
+                pydirectinput.moveRel(step, 0, relative=True)
+                move_x -= step
 
-        pydirectinput.keyDown('w')
-        time.sleep(1)
-        pydirectinput.keyUp('w')
+            pydirectinput.keyDown('w')
+            time.sleep(1)
+            pydirectinput.keyUp('w')
 
-        pydirectinput.press('f')
+            pydirectinput.press('f')
 
-        pydirectinput.keyDown('s')
-        time.sleep(1)
-        pydirectinput.keyUp('s')
+            pydirectinput.keyDown('s')
+            time.sleep(1)
+            pydirectinput.keyUp('s')
 
 
         return
@@ -349,7 +349,7 @@ class PubgModel:
         print('plane_find_pos 打开地图')
         
         # 打开地图
-        while True:
+        while self.running:
             if time.time() - start_time > 10:
                 print('打开地图失败')
                 return
@@ -361,7 +361,7 @@ class PubgModel:
         
         start_time = time.time()
         min_dis = 100000
-        while True:
+        while self.running:
             if time.time() - start_time > 30:
                 print('起飞超时')
                 return
@@ -376,7 +376,7 @@ class PubgModel:
         # 关闭地图
         start_time = time.time()
         print('plane_find_pos 关闭地图')
-        while True:
+        while self.running:
             if time.time() - start_time > 10:
                 print('关闭地图失败')
                 return
@@ -402,7 +402,7 @@ class PubgModel:
 
         start_time = time.time()
         min_dis = 100000
-        while True:
+        while self.running:
             if time.time() - start_time > 120:
                 print('飞行到目标超时')
                 pydirectinput.press("shift")
@@ -426,7 +426,7 @@ class PubgModel:
 
         pydirectinput.press('f')
         start_time = time.time()
-        while True:
+        while self.running:
             if time.time() - start_time > 120:
                 print('降落超时')
                 pydirectinput.press("shift")
