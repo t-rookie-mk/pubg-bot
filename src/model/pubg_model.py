@@ -405,6 +405,10 @@ class PubgModel:
         while True:
             if time.time() - start_time > 120:
                 print('飞行到目标超时')
+                pydirectinput.press("shift")
+                pydirectinput.press("w")
+                pydirectinput.press("ctrl")
+                pydirectinput.press('a')
                 return
             
             dis = self.get_cur_target_distance(relative_area=self.min_map_area)
@@ -425,6 +429,10 @@ class PubgModel:
         while True:
             if time.time() - start_time > 120:
                 print('降落超时')
+                pydirectinput.press("shift")
+                pydirectinput.press("w")
+                pydirectinput.press("ctrl")
+                pydirectinput.press('a')
                 return
             # 如果没落地
             x, y = self.image_finder.find_image_in_screen(self.pic_dict['ground'])

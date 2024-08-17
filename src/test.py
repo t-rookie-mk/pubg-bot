@@ -24,6 +24,8 @@ if coord:
 
 model = PubgModel()
 
+model.end()
+
 # pydirectinput.moveRel(100, 0, relative=True, _pause=False)
 
 # move_x= 4000
@@ -41,9 +43,9 @@ model = PubgModel()
 
 # model.mark_pos_action()
 
-x, y = image_finder.find_image_in_screen(model.pic_dict['ground'])
+# x, y = image_finder.find_image_in_screen(model.pic_dict['ground'])
 
-model.cesuo_pos = [876, 456, 890, 460, 887, 472, 879, 500]
-# model.check_arrive_pos_way_finding()
-model.marking()
-model.goto_bp()
+# model.cesuo_pos = [876, 456, 890, 460, 887, 472, 879, 500]
+# # model.check_arrive_pos_way_finding()
+# model.marking()
+# model.goto_bp()
