@@ -401,7 +401,6 @@ class PubgModel:
         self.direction_finding()
 
         start_time = time.time()
-        min_dis = 100000
         while self.running:
             if time.time() - start_time > 120:
                 print('飞行到目标超时')
@@ -415,14 +414,12 @@ class PubgModel:
             if dis:
                 if dis < 30:
                     break
-                else:
-                    # 如果落地了
-                    x, y = self.image_finder.find_image_in_screen(self.pic_dict['ground'])
-                    if x is not None:
-                        pydirectinput.keyUp("ctrl")
-                        pydirectinput.keyDown("shift")
-
-                min_dis = min(min_dis, dis)
+            
+            # 如果落地了
+            x, y = self.image_finder.find_image_in_screen(self.pic_dict['ground'])
+            if x is not None:
+                pydirectinput.keyUp("ctrl")
+                pydirectinput.keyDown("shift")
 
         pydirectinput.press('f')
         start_time = time.time()
