@@ -1,3 +1,4 @@
+import datetime
 import sys
 import threading
 import time
@@ -28,12 +29,24 @@ if __name__ == "__main__":
     time.sleep(2)
 
     game.define_now_state()
-
-
+    
     while True:
         try:
             if not game.running:
                 sys.exit()
+
+            # 获取当前时间
+            now = datetime.datetime.now()
+            # 定义工作时间范围
+            start_time = now.replace(hour=10, minute=0, second=0, microsecond=0)
+            end_time = now.replace(hour=17, minute=0, second=0, microsecond=0)
+
+            # # 判断当前时间是否在 10:00 到 17:00 之间
+            # if start_time <= now <= end_time:
+            #     print("当前时间在 10:00 - 17:00 之间，开始睡眠 10 分钟...")
+            #     time.sleep(10 * 60)  # 睡眠 10 分钟（600秒）
+            #     print("睡眠结束")
+            #     continue
                 
             if game.state == 'no_game':
                 game.start_game()

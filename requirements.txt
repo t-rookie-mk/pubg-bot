@@ -6,3 +6,4 @@ opencv-python
 pydirectinput
 matplotlib
 keyboard
+hidapi
